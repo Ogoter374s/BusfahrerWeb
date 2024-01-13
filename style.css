@@ -1,0 +1,361 @@
+body {
+    min-height: 100vh;
+    min-width: 100vw;
+    background-color: #12181f;
+    color: white;
+  }
+  
+  h1 {
+    text-align: center;
+    font-weight: 700;
+    font-size: 70px;
+  }
+  
+  h2 {
+    display: flex;
+    justify-content: center;
+    font-size: 35px;
+    vertical-align: middle;
+    margin-bottom: .5%;
+  }
+  
+  input {
+    text-align: left;
+    text-align: left;
+    font-size: 25px;
+    margin-left: .5%;
+    max-width: 200px;
+  }
+  
+  p {
+    margin-top: 1%;
+    text-align: center;
+    font-size: 40px;
+    font-weight: bold;
+  }
+  
+  .titlePhases {
+    margin-top: -1%;
+    margin-bottom: -.1%;
+  }
+
+  .busfahrer {
+    margin-left: 10px;
+  }
+
+  .phase2Rules {
+    text-align: center;
+    font-size: 25px;
+    font-weight: bold;
+    color:gold;
+  }
+  
+  .phase2Rules span {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .players {
+    text-align: center;
+    font-size: 35px;
+    font-weight: bold;
+    color:darkorange;
+    margin-bottom: 1%;
+  }
+  
+  .players span {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .actions {
+    margin-bottom: -1%;
+    display:flex;
+    justify-content: center;
+  }
+  
+  .playerBtn {
+    padding: 8px 16px;
+    margin-bottom: 2%;
+    font-size: 30px;
+    border-radius: 10px;
+    background-color: #ee89f1;
+    color: white;
+  }
+
+  .nextCountBtn {
+    padding: 8px 16px;
+    margin-top: 1%;
+    margin-bottom: 2%;
+    font-size: 30px;
+    border-radius: 10px;
+    background-color: #2ed1ee;
+    color: white;
+  }
+  
+  .nextBtn {
+    padding: 8px 16px;
+    margin-top: 25px;
+    font-size: 30px;
+    border-radius: 10px;
+    background-color: #2ed1ee;
+    color: white;
+  }
+  
+  .genderInp {
+    display: flex;
+    justify-content: center;
+    color: white;
+  }
+
+  .resetBtn {
+    padding: 8px 16px;
+    margin-top: 45px;
+    margin-bottom: -25px;
+    font-size: 30px;
+    border-radius: 10px;
+    background-color: #e15858;
+    color: white;
+  }
+  
+  .phase3Btn {
+    padding: 8px 16px;
+    margin-top: 1%;
+    margin-bottom: 2%;
+    font-size: 30px;
+    border-radius: 10px;
+    background-color: #d67d41;
+    color: white;
+  }
+  
+  .phase3 {
+    display: flex;
+    justify-content: center;
+    margin-bottom: -20px;
+    margin-top: -.5%;
+  }
+  
+  .countBtn {
+    padding: 8px 16px;
+    margin-top: 1%;
+    margin-bottom: 2%;
+    font-size: 30px;
+    border-radius: 10px;
+    background-color: goldenrod;
+    color: white;
+  }
+  
+  .roomBtn {
+    padding: 8px 16px;
+    margin-top: 1%;
+    font-size: 30px;
+    border-radius: 10px;
+    background-color: #626262;
+    color: white;
+  }
+
+  .joinBtn {
+    padding: 8px 16px;
+    margin-top: 1%;
+    font-size: 30px;
+    border-radius: 10px;
+    background-color: #3578e4;
+    color: white;
+  }
+  
+
+  .startBtn {
+    padding: 8px 16px;
+    font-size: 30px;
+    border-radius: 10px;
+    background-color: #27ae60;
+    color: white;
+  }
+  
+  .stopBtn {
+    padding: 8px 16px;
+    font-size: 30px;
+    border-radius: 10px;
+    background-color: red;
+    color: white;
+  }
+  
+  .phase2Btn {
+    padding: 8px 16px;
+    margin-left: 40px;
+    font-size: 30px;
+    border-radius: 10px;
+    background-color: #2ed1ee;
+    color: white;
+  }
+  
+  .grid-phase1 {
+    margin-top: .5%;
+    margin-bottom: 3%;
+    margin-left: 3.7%;
+    display: grid;
+    justify-content: center;
+  }
+  
+  .grid-phase3 {
+    margin-top: -1%;
+    margin-bottom: .5%;
+    margin-left: 3.7%;
+    display: grid;
+    justify-content: center;
+  }
+  
+  .grid-firstRow {
+    display: grid;
+    justify-content: center;
+    grid-gap: 6px;
+    grid-template-columns: repeat(1, 150px);
+    grid-template-rows: repeat(1, 80px);
+    margin-bottom: 5px;
+  }
+  
+  .grid-secondRow {
+    display: grid;
+    justify-content: center;
+    grid-gap: 6px;
+    grid-template-columns: repeat(2, 150px);
+    grid-template-rows: repeat(1, 80px);
+    margin-bottom: 5px;
+  }
+  
+  .grid-thirdRow {
+    display: grid;
+    justify-content: center;
+    grid-gap: 6px;
+    grid-template-columns: repeat(3, 150px);
+    grid-template-rows: repeat(1, 80px);
+    margin-bottom: 5px;
+  }
+  
+  .grid-fourthRow {
+    display: grid;
+    justify-content: center;
+    grid-gap: 6px;
+    grid-template-columns: repeat(4, 150px);
+    grid-template-rows: repeat(1, 80px);
+    margin-bottom: 5px;
+  }
+  
+  .grid-fifthRow {
+    display: grid;
+    justify-content: center;
+    grid-gap: 6px;
+    grid-template-columns: repeat(5, 150px);
+    grid-template-rows: repeat(1, 80px);
+    margin-bottom: 5px;
+  }
+  
+  .grid-cards {
+    display: grid;
+    justify-content: center;
+    grid-gap: 5px;
+    grid-template-columns: repeat(10, 110px);
+    grid-template-rows: repeat(1, 180px);
+    justify-items: center;
+    align-items: center;
+  }
+  
+  .grid-phase2 {
+    display: grid;
+    justify-content: center;
+    grid-gap: 15px;
+    grid-template-columns: repeat(3, 180px);
+    grid-template-rows: repeat(1, 270px);
+  }
+  
+  .cardSelf {
+    height: 180px;
+    width: 110px;
+    border-radius: 10px;
+    background-color: white;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: all 0.5s ease-in-out;
+  }
+  
+  .cardPhase2 {
+    height: 270px;
+    width: 180px;
+    border-radius: 10px;
+    background-color: white;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: all 0.5s ease-in-out;
+  }
+  
+  .card {
+    height: 150px;
+    width: 80px;
+    border-radius: 10px;
+    background-color: white;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: all 0.5s ease-in-out;
+    transform: rotateZ(270deg);
+  }
+  
+  .front-image-self {
+    width: 110px;
+    height: 180px;
+  }
+  
+  
+  .front-image {
+    width: 80px;
+    height: 150px;
+  }
+  
+  .front-image-phase2 {
+    width: 180px;
+    height: 270px;
+  }
+  
+  .card.flipped {
+    transform: rotateZ(90deg) rotateY(180deg) scaleX(-1); 
+  }
+  
+  .front,
+  .back {
+    backface-visibility: hidden;
+    position: absolute;
+    border-radius: 10px;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+  }
+  
+  .card .front {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .card .back {
+    background-image: url("data:image/svg+xml,<svg id='patternId' width='100%' height='100%' xmlns='http://www.w3.org/2000/svg'><defs><pattern id='a' patternUnits='userSpaceOnUse' width='20' height='20' patternTransform='scale(1) rotate(45)'><rect x='0' y='0' width='100%' height='100%' fill='hsla(0,0%,100%,1)'/><path d='M0 0h10v10H0z'  stroke-width='1' stroke='none' fill='hsla(4, 100%, 61%, 1)'/><path d='M10 10h10v10H10z'  stroke-width='1' stroke='none' fill='hsla(4, 100%, 61%, 1)'/></pattern></defs><rect width='800%' height='800%' transform='translate(0,0)' fill='url(%23a)'/></svg>");
+    background-position: center center;
+    background-size: cover;
+    backface-visibility: hidden;
+  }
+  
+  .radio-container label {
+    margin-top: 5px;
+    font-size: 25px;
+    vertical-align: middle;
+  }
+  .radio-container input {
+    height: 35px;
+    width: 35px;
+    vertical-align: middle;
+  }
+
+  .radio-container {
+    display: flex; 
+    justify-content: center;
+    width: 400px;
+  }
