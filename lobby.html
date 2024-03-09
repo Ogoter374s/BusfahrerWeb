@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busfahrer Web</title>
+    <link rel="stylesheet" type="text/css" href="http://localhost/BusfahrerWebMultiplayer/style.css">
+</head>
+<body>
+    <!------- Starting Screen ------->
+
+    <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <h1 id="heading">
+        <span style="color:white">Busfahrer</span>
+        <span style="color: red;">Extreme</span>
+    </h1>
+
+    <div class="lobbyBox">
+        <h2 class="statisticTitle" style="margin-top: 0%;">
+            <span style="color:white">Game Lobby</span>
+        </h2>
+        
+        <div class="lobbyCont">
+            <ul id="lobby">
+            </ul>
+          </div>
+    </div>
+
+    <div class="actions" style="margin-top: -1%;">
+        <button id="startGame" class="startBtn" onclick="startGame()">Start Game</button>
+    </div>
+</div>
+
+    <script src="/socket.io/socket.io.js"> </script>
+    <script src="http://localhost/BusfahrerWebMultiplayer/lobby.js"></script>
+</body>
+</html>

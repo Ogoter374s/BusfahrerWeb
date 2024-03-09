@@ -1,361 +1,694 @@
 body {
-    min-height: 100vh;
-    min-width: 100vw;
-    background-color: #12181f;
-    color: white;
-  }
-  
-  h1 {
-    text-align: center;
-    font-weight: 700;
-    font-size: 70px;
-  }
-  
-  h2 {
-    display: flex;
-    justify-content: center;
-    font-size: 35px;
-    vertical-align: middle;
-    margin-bottom: .5%;
-  }
-  
-  input {
-    text-align: left;
-    text-align: left;
-    font-size: 25px;
-    margin-left: .5%;
-    max-width: 200px;
-  }
-  
-  p {
-    margin-top: 1%;
-    text-align: center;
-    font-size: 40px;
-    font-weight: bold;
-  }
-  
-  .titlePhases {
-    margin-top: -1%;
-    margin-bottom: -.1%;
-  }
+  min-height: 100%;
+  min-width: 100vh;
+  background-color: #12181f;
+  color: white;
+}
 
-  .busfahrer {
-    margin-left: 10px;
-  }
+form {
+  padding: 0.25rem; 
+  position: relative; 
+  left: 0;
+}
 
-  .phase2Rules {
-    text-align: center;
-    font-size: 25px;
-    font-weight: bold;
-    color:gold;
-  }
-  
-  .phase2Rules span {
-    display: block;
-    margin-bottom: 5px;
-  }
-  
-  .players {
-    text-align: center;
-    font-size: 35px;
-    font-weight: bold;
-    color:darkorange;
-    margin-bottom: 1%;
-  }
-  
-  .players span {
-    display: block;
-    margin-bottom: 5px;
-  }
-  
-  .actions {
-    margin-bottom: -1%;
-    display:flex;
-    justify-content: center;
-  }
-  
-  .playerBtn {
-    padding: 8px 16px;
-    margin-bottom: 2%;
-    font-size: 30px;
-    border-radius: 10px;
-    background-color: #ee89f1;
-    color: white;
-  }
+.msgs {
+  list-style: none; 
+  margin: 0; 
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  border-style: dotted;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
 
-  .nextCountBtn {
-    padding: 8px 16px;
-    margin-top: 1%;
-    margin-bottom: 2%;
-    font-size: 30px;
-    border-radius: 10px;
-    background-color: #2ed1ee;
-    color: white;
-  }
-  
-  .nextBtn {
-    padding: 8px 16px;
-    margin-top: 25px;
-    font-size: 30px;
-    border-radius: 10px;
-    background-color: #2ed1ee;
-    color: white;
-  }
-  
-  .genderInp {
-    display: flex;
-    justify-content: center;
-    color: white;
-  }
+.players {
+  width: 100%;
+  min-height: 100%;
+  border-style: dotted;
+  position: relative;
+}
 
-  .resetBtn {
-    padding: 8px 16px;
-    margin-top: 45px;
-    margin-bottom: -25px;
-    font-size: 30px;
-    border-radius: 10px;
-    background-color: #e15858;
-    color: white;
-  }
-  
-  .phase3Btn {
-    padding: 8px 16px;
-    margin-top: 1%;
-    margin-bottom: 2%;
-    font-size: 30px;
-    border-radius: 10px;
-    background-color: #d67d41;
-    color: white;
-  }
-  
-  .phase3 {
-    display: flex;
-    justify-content: center;
-    margin-bottom: -20px;
-    margin-top: -.5%;
-  }
-  
-  .countBtn {
-    padding: 8px 16px;
-    margin-top: 1%;
-    margin-bottom: 2%;
-    font-size: 30px;
-    border-radius: 10px;
-    background-color: goldenrod;
-    color: white;
-  }
-  
-  .roomBtn {
-    padding: 8px 16px;
-    margin-top: 1%;
-    font-size: 30px;
-    border-radius: 10px;
-    background-color: #626262;
-    color: white;
-  }
+.lobbyCont {
+  display: flex;
+  align-items: center;
+}
 
-  .joinBtn {
-    padding: 8px 16px;
-    margin-top: 1%;
-    font-size: 30px;
-    border-radius: 10px;
-    background-color: #3578e4;
-    color: white;
-  }
-  
+.lobby-item {
+  margin: 0 10px;
+  list-style: none;
+  margin-top: 12%;
+  display: flex;
+  align-items: center;
+}
 
-  .startBtn {
-    padding: 8px 16px;
-    font-size: 30px;
-    border-radius: 10px;
-    background-color: #27ae60;
-    color: white;
-  }
-  
-  .stopBtn {
-    padding: 8px 16px;
-    font-size: 30px;
-    border-radius: 10px;
-    background-color: red;
-    color: white;
-  }
-  
-  .phase2Btn {
-    padding: 8px 16px;
-    margin-left: 40px;
-    font-size: 30px;
-    border-radius: 10px;
-    background-color: #2ed1ee;
-    color: white;
-  }
-  
-  .grid-phase1 {
-    margin-top: .5%;
-    margin-bottom: 3%;
-    margin-left: 3.7%;
-    display: grid;
-    justify-content: center;
-  }
-  
-  .grid-phase3 {
-    margin-top: -1%;
-    margin-bottom: .5%;
-    margin-left: 3.7%;
-    display: grid;
-    justify-content: center;
-  }
-  
-  .grid-firstRow {
-    display: grid;
-    justify-content: center;
-    grid-gap: 6px;
-    grid-template-columns: repeat(1, 150px);
-    grid-template-rows: repeat(1, 80px);
-    margin-bottom: 5px;
-  }
-  
-  .grid-secondRow {
-    display: grid;
-    justify-content: center;
-    grid-gap: 6px;
-    grid-template-columns: repeat(2, 150px);
-    grid-template-rows: repeat(1, 80px);
-    margin-bottom: 5px;
-  }
-  
-  .grid-thirdRow {
-    display: grid;
-    justify-content: center;
-    grid-gap: 6px;
-    grid-template-columns: repeat(3, 150px);
-    grid-template-rows: repeat(1, 80px);
-    margin-bottom: 5px;
-  }
-  
-  .grid-fourthRow {
-    display: grid;
-    justify-content: center;
-    grid-gap: 6px;
-    grid-template-columns: repeat(4, 150px);
-    grid-template-rows: repeat(1, 80px);
-    margin-bottom: 5px;
-  }
-  
-  .grid-fifthRow {
-    display: grid;
-    justify-content: center;
-    grid-gap: 6px;
-    grid-template-columns: repeat(5, 150px);
-    grid-template-rows: repeat(1, 80px);
-    margin-bottom: 5px;
-  }
-  
-  .grid-cards {
-    display: grid;
-    justify-content: center;
-    grid-gap: 5px;
-    grid-template-columns: repeat(10, 110px);
-    grid-template-rows: repeat(1, 180px);
-    justify-items: center;
-    align-items: center;
-  }
-  
-  .grid-phase2 {
-    display: grid;
-    justify-content: center;
-    grid-gap: 15px;
-    grid-template-columns: repeat(3, 180px);
-    grid-template-rows: repeat(1, 270px);
-  }
-  
-  .cardSelf {
-    height: 180px;
-    width: 110px;
-    border-radius: 10px;
-    background-color: white;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: all 0.5s ease-in-out;
-  }
-  
-  .cardPhase2 {
-    height: 270px;
-    width: 180px;
-    border-radius: 10px;
-    background-color: white;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: all 0.5s ease-in-out;
-  }
-  
-  .card {
-    height: 150px;
-    width: 80px;
-    border-radius: 10px;
-    background-color: white;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: all 0.5s ease-in-out;
-    transform: rotateZ(270deg);
-  }
-  
-  .front-image-self {
-    width: 110px;
-    height: 180px;
-  }
-  
-  
-  .front-image {
-    width: 80px;
-    height: 150px;
-  }
-  
-  .front-image-phase2 {
-    width: 180px;
-    height: 270px;
-  }
-  
-  .card.flipped {
-    transform: rotateZ(90deg) rotateY(180deg) scaleX(-1); 
-  }
-  
-  .front,
-  .back {
-    backface-visibility: hidden;
-    position: absolute;
-    border-radius: 10px;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-  }
-  
-  .card .front {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .card .back {
-    background-image: url("data:image/svg+xml,<svg id='patternId' width='100%' height='100%' xmlns='http://www.w3.org/2000/svg'><defs><pattern id='a' patternUnits='userSpaceOnUse' width='20' height='20' patternTransform='scale(1) rotate(45)'><rect x='0' y='0' width='100%' height='100%' fill='hsla(0,0%,100%,1)'/><path d='M0 0h10v10H0z'  stroke-width='1' stroke='none' fill='hsla(4, 100%, 61%, 1)'/><path d='M10 10h10v10H10z'  stroke-width='1' stroke='none' fill='hsla(4, 100%, 61%, 1)'/></pattern></defs><rect width='800%' height='800%' transform='translate(0,0)' fill='url(%23a)'/></svg>");
-    background-position: center center;
-    background-size: cover;
-    backface-visibility: hidden;
-  }
-  
-  .radio-container label {
-    margin-top: 5px;
-    font-size: 25px;
-    vertical-align: middle;
-  }
-  .radio-container input {
-    height: 35px;
-    width: 35px;
-    vertical-align: middle;
-  }
+.lobby-item > span {
+  margin: 0 5px;
+  font-size: 35px;
+}
+.lobby-item > button {
+  margin: 0 5px;
+  right: 5%;
+  position: absolute;
+}
 
-  .radio-container {
-    display: flex; 
-    justify-content: center;
-    width: 400px;
-  }
+.gameCont {
+  display: flex;
+  align-items: center;
+}
+
+.game-item {
+  margin: 0 10px;
+  list-style: none;
+  margin-top: 5%;
+  display: flex;
+  align-items: center;
+}
+
+.game-item > span {
+  margin: 0 5px;
+  font-size: 35px;
+}
+.game-item > button {
+  margin: 0 5px;
+  right: 5%;
+  position: absolute;
+}
+
+.game-item > label {
+  margin: 0 0;
+  right: 14%;
+  position: absolute;
+  font-size: 35px;
+}
+
+.game-item > label > input {
+  transform: scale(2);
+  margin: 13px -30px;
+  position: absolute;
+}
+
+.players > li {
+  padding: 0.5rem 1rem;
+  padding-left: 10%;
+  margin: 0 10px;
+  font-size: 32px;
+  list-style: none;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 999;
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.msgs > li {
+  padding: 0.5rem 1rem;
+  font-size: 25px;
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.chatInp {
+  border: none; 
+  border-radius: 2rem; 
+  min-width: 100%;
+  min-height: 40px;
+  margin-left: -.25%;
+  margin-top: 1%;
+}
+
+.settingCont {
+  position: absolute; 
+  bottom: 0; 
+  right:0;
+  padding: 2%;
+}
+
+.playerN {
+  position: absolute;
+  font-family: Arial;
+  bottom: 0;
+  right: 0;
+  font-size: 35px;
+  margin-bottom: 4.2%;
+  margin-right: 11.5%;
+  padding-right: 50px;
+  height: 50px;
+  color: white;
+}
+
+.statisticBox {
+  width: 80%;
+  height: 72%;
+  margin: 50px auto;
+  border: 2px solid;
+  position: relative;
+  border-radius: 5%;
+  box-shadow: 0 0 20px rgba(0, 204, 255, 0.5)
+}
+
+h3 {
+  font-size: 30px;
+  margin-left: 10%;
+}
+
+.settingsBox {
+  width: 35%;
+  height: 600px;
+  margin: 50px auto;
+  border: 2px solid;
+  position: relative;
+  border-radius: 5%;
+  box-shadow: 0 0 20px rgba(0, 204, 255, 0.5)
+}
+
+.lobbyBox {
+  width: 45%;
+  height: 650px;
+  margin: 50px auto;
+  border: 2px solid;
+  position: relative;
+  border-radius: 8%;
+  box-shadow: 0 0 20px rgba(0, 204, 255, 0.5)
+}
+
+.gameBox {
+  width: 45%;
+  height: 725px;
+  margin: 50px auto;
+  border: 2px solid;
+  position: relative;
+  border-radius: 8%;
+  box-shadow: 0 0 20px rgba(0, 204, 255, 0.5)
+}
+
+.accountBox {
+  width: 50%;
+  height: 670px;
+  margin: 50px auto;
+  border: 2px solid;
+  position: relative;
+  border-radius: 8%;
+  box-shadow: 0 0 20px rgba(0, 204, 255, 0.5)
+}
+
+.loggingCont {
+  display: flex; 
+  justify-content: center;
+}
+
+.backCont {
+  position: absolute; 
+  bottom: 0; 
+  right:0;
+  padding: 2%; 
+}
+
+.statisticList {
+  display: relative;
+  padding-top: 8%;
+}
+
+.statisticItem {
+  font-size: 34px;
+  margin-bottom: 1%;
+}
+
+.statisticTitle {
+  position: absolute;
+  top: 0%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color:#12181f;
+  padding: 5px 10px;
+  font-size: 50px;
+}
+
+.settingBtn {
+  width: 150px;
+  height: 150px;
+  border-radius: 20%;
+  background-color:darkgray;
+  color:#12181f;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  background-image: url('http://localhost/BusfahrerWebMultiplayer/images/cogwheel.svg');
+  background-size: 80% auto;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 10%;
+}
+
+.box {
+  flex: 1;
+  min-height: 700px;
+}
+
+h1 {
+  text-align: center;
+  font-weight: 700;
+  font-size: 70px;
+}
+
+h2 {
+  display: flex;
+  justify-content: center;
+  font-size: 35px;
+  vertical-align: middle;
+  margin-bottom: .5%;
+}
+
+input {
+  text-align: left;
+  text-align: left;
+  font-size: 25px;
+  margin-left: .5%;
+  max-width: 200px;
+}
+
+p {
+  margin-top: 1%;
+  text-align: center;
+  font-size: 40px;
+  font-weight: bold;
+}
+
+.titlePhases {
+  margin-top: -1%;
+  margin-bottom: -.1%;
+}
+
+.busfahrer {
+  margin-left: 10px;
+}
+
+.phase2Rules {
+  text-align: center;
+  font-size: 25px;
+  font-weight: bold;
+  color:gold;
+}
+
+.phase2Rules span {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.actions {
+  margin-bottom: -1%;
+  display:flex;
+  justify-content: center;
+}
+
+.playerBtn {
+  padding: 8px 16px;
+  margin-bottom: 2%;
+  font-size: 30px;
+  border-radius: 10px;
+  background-color: #ee89f1;
+  color: white;
+}
+
+.removeBtn {
+  width: 50px;
+  height: 50px;
+  border-radius: 10%;
+  background-color:red;
+  border: none;
+  overflow: hidden;
+  background-image: url('http://localhost/BusfahrerWebMultiplayer/images/remove.svg');
+  background-size: 80% auto;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.joinBtn {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  background-color: #3578e4;
+  border: none;
+  overflow: hidden;
+  background-image: url('http://localhost/BusfahrerWebMultiplayer/images/join.svg');
+  background-size: 80% auto;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.nextCountBtn {
+  padding: 8px 16px;
+  margin-top: 1%;
+  margin-bottom: 2%;
+  font-size: 30px;
+  border-radius: 10px;
+  background-color: #2ed1ee;
+  color: white;
+}
+
+.nextBtn {
+  padding: 8px 16px;
+  margin-top: 25px;
+  font-size: 30px;
+  border-radius: 10px;
+  background-color: #2ed1ee;
+  color: white;
+}
+
+.genderInp {
+  display: flex;
+  justify-content: center;
+  color: white;
+}
+
+.resetBtn {
+  padding: 8px 16px;
+  margin-top: 45px;
+  margin-bottom: -25px;
+  font-size: 30px;
+  border-radius: 10px;
+  background-color: #e15858;
+  color: white;
+}
+
+.phase3Btn {
+  padding: 8px 16px;
+  margin-top: 1%;
+  margin-bottom: 2%;
+  font-size: 30px;
+  border-radius: 10px;
+  background-color: #d67d41;
+  color: white;
+}
+
+.phase3 {
+  display: flex;
+  justify-content: center;
+  margin-bottom: -20px;
+  margin-top: -.5%;
+}
+
+.countBtn {
+  padding: 8px 16px;
+  margin-top: 1%;
+  margin-bottom: 2%;
+  font-size: 30px;
+  border-radius: 10px;
+  background-color: goldenrod;
+  color: white;
+}
+
+.backBtn {
+  padding: 8px 16px;
+  margin-top: 1%;
+  font-size: 30px;
+  border-radius: 10px;
+  background-color: #cc0000;
+  color: white;
+}
+
+.roomBtn {
+  padding: 8px 16px;
+  margin-top: -1%;
+  font-size: 30px;
+  border-radius: 10px;
+  background-color: #27ae60;
+  color: white;
+}
+
+.signInBtn {
+  padding: 8px 16px;
+  margin-top: 1%;
+  font-size: 30px;
+  border-radius: 10px;
+  background-color: #0059ff;
+  color: white;
+}
+
+.registerBtn {
+  padding: 8px 16px;
+  margin-top: 1%;
+  font-size: 30px;
+  border-radius: 10px;
+  background-color: #00f0dc;
+  color: white;
+}
+
+.gameBtn {
+  padding: 8px 16px;
+  margin-top: 1%;
+  font-size: 40px;
+  border-radius: 10px;
+  width: 100%;
+  background-color: #27ae60;
+  color: white;
+}
+
+.addBtn {
+  padding: 8px 16px;
+  margin-top: 1%;
+  font-size: 40px;
+  border-radius: 10px;
+  background-color: #3578e4;
+  color: white;
+}
+
+.watchBtn {
+  padding: 8px 16px;
+  font-size: 40px;
+  width: 100%;
+  border-radius: 10px;
+  background-color: #24ebca;
+  color: white;
+}
+
+.startBtn {
+  padding: 8px 16px;
+  font-size: 30px;
+  border-radius: 10px;
+  background-color: #27ae60;
+  color: white;
+}
+
+.stopBtn {
+  padding: 8px 16px;
+  font-size: 30px;
+  border-radius: 10px;
+  background-color: red;
+  color: white;
+}
+
+.phase2Btn {
+  padding: 8px 16px;
+  margin-left: 40px;
+  font-size: 30px;
+  border-radius: 10px;
+  background-color: #2ed1ee;
+  color: white;
+}
+
+.grid-phase1 {
+  margin-top: .5%;
+  margin-bottom: 3%;
+  margin-left: 3.7%;
+  display: grid;
+  justify-content: center;
+}
+
+.grid-phase3 {
+  margin-top: -1%;
+  margin-bottom: .5%;
+  margin-left: 3.7%;
+  display: grid;
+  justify-content: center;
+}
+
+.grid-firstRow {
+  display: grid;
+  justify-content: center;
+  grid-gap: 6px;
+  grid-template-columns: repeat(1, 150px);
+  grid-template-rows: repeat(1, 80px);
+  margin-bottom: 5px;
+}
+
+.grid-secondRow {
+  display: grid;
+  justify-content: center;
+  grid-gap: 6px;
+  grid-template-columns: repeat(2, 150px);
+  grid-template-rows: repeat(1, 80px);
+  margin-bottom: 5px;
+}
+
+.grid-thirdRow {
+  display: grid;
+  justify-content: center;
+  grid-gap: 6px;
+  grid-template-columns: repeat(3, 150px);
+  grid-template-rows: repeat(1, 80px);
+  margin-bottom: 5px;
+}
+
+.grid-fourthRow {
+  display: grid;
+  justify-content: center;
+  grid-gap: 6px;
+  grid-template-columns: repeat(4, 150px);
+  grid-template-rows: repeat(1, 80px);
+  margin-bottom: 5px;
+}
+
+.grid-fifthRow {
+  display: grid;
+  justify-content: center;
+  grid-gap: 6px;
+  grid-template-columns: repeat(5, 150px);
+  grid-template-rows: repeat(1, 80px);
+  margin-bottom: 5px;
+}
+
+.grid-cards {
+  display: grid;
+  justify-content: center;
+  grid-gap: 5px;
+  grid-template-columns: repeat(10, 110px);
+  grid-template-rows: repeat(1, 180px);
+  justify-items: center;
+  align-items: center;
+}
+
+.grid-phase2 {
+  display: grid;
+  justify-content: center;
+  grid-gap: 15px;
+  grid-template-columns: repeat(3, 180px);
+  grid-template-rows: repeat(1, 270px);
+}
+
+.cardSelf {
+  height: 180px;
+  width: 110px;
+  border-radius: 10px;
+  background-color: white;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: all 0.5s ease-in-out;
+}
+
+.cardPhase2 {
+  height: 270px;
+  width: 180px;
+  border-radius: 10px;
+  background-color: white;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: all 0.5s ease-in-out;
+}
+
+.cardPhase3 {
+  height: 150px;
+  width: 80px;
+  border-radius: 10px;
+  background-color: white;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: all 0.5s ease-in-out;
+}
+
+.card {
+  height: 150px;
+  width: 80px;
+  border-radius: 10px;
+  background-color: white;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: all 0.5s ease-in-out;
+  transform: rotateZ(270deg);
+}
+
+.front-image-self {
+  width: 110px;
+  height: 180px;
+}
+
+.front-image {
+  width: 80px;
+  height: 150px;
+}
+
+.front-image-phase2 {
+  width: 180px;
+  height: 270px;
+}
+
+.card.flipped {
+  transform: rotateZ(90deg) rotateY(180deg) scaleX(-1); 
+}
+
+.front,
+.back {
+  backface-visibility: hidden;
+  position: absolute;
+  border-radius: 10px;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.card .front {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card .back {
+  background-image: url("data:image/svg+xml,<svg id='patternId' width='100%' height='100%' xmlns='http://www.w3.org/2000/svg'><defs><pattern id='a' patternUnits='userSpaceOnUse' width='20' height='20' patternTransform='scale(1) rotate(45)'><rect x='0' y='0' width='100%' height='100%' fill='hsla(0,0%,100%,1)'/><path d='M0 0h10v10H0z'  stroke-width='1' stroke='none' fill='hsla(4, 100%, 61%, 1)'/><path d='M10 10h10v10H10z'  stroke-width='1' stroke='none' fill='hsla(4, 100%, 61%, 1)'/></pattern></defs><rect width='800%' height='800%' transform='translate(0,0)' fill='url(%23a)'/></svg>");
+  background-position: center center;
+  background-size: cover;
+  backface-visibility: hidden;
+}
+
+.radio-container label {
+  margin-top: 5px;
+  font-size: 25px;
+  vertical-align: middle;
+}
+.radio-container input {
+  height: 35px;
+  width: 35px;
+  vertical-align: middle;
+}
+
+.radio-container {
+  display: flex; 
+  justify-content: center;
+  width: 400px;
+}

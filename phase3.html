@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busfahrer Web</title>
+    <link rel="stylesheet" type="text/css" href="http://localhost/BusfahrerWebMultiplayer/style.css">
+</head>
+<body>
+    <!------- Starting Screen ------->
+
+    <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div id="actions">
+        <div class="actions">
+            <button id="stopGame" class="stopBtn" onclick="stopGame()">Stop Game</button>
+        </div>
+    </div>
+
+    <!------- Phase 3 Screen ------->
+
+    <div id="titlePhase2" class="titlePhases">
+        <h2>
+            <span style="color:white">Busfahrer: </span>
+            <span id="busfahrer" style="color: aqua" class="busfahrer"></span>
+        </h2>
+    </div>
+
+    <div id="phase3Cont" style="margin-top: -35px;">
+        <div id="gridPhase3">
+            <div class="grid-phase3"></div>
+        </div>
+
+        <div id="actionsPhase3" class="phase3">
+            <button id="reset" class="resetBtn" onclick="resetPhase()">Reset Deck</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"> </script>
+    <script src="http://localhost/BusfahrerWebMultiplayer/phase3.js"></script>
+</body>
+</html>

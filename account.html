@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busfahrer Web</title>
+    <link rel="stylesheet" type="text/css" href="http://localhost/BusfahrerWebMultiplayer/style.css">
+</head>
+<body>
+    <!------- Starting Screen ------->
+
+    <h1 id="heading">
+        <span style="color:white">Busfahrer</span>
+        <span style="color: red;">Extreme</span>
+    </h1>
+
+    <!------- Logging Screen ------->
+
+    <div id="logginCont">
+        <h2>
+            <span style="color:white">Login Name: </span>
+            <input type="text" id="loginName" class="checkInp" oninput="checkInput()">
+        </h2>
+        <h2>
+            <span style="color:white">Password: </span>
+            <input type="password" id="loginPswd" class="checkInp" oninput="checkInput()">
+        </h2>
+    </div>
+
+    <!------- Register Screen ------->
+
+    <div id="registerCont">
+        <h2>
+            <span style="color:white">Account Name: </span>
+            <input type="text" id="registerName" class="checkRegInp" oninput="checkRegisterInp()">
+        </h2>
+        <h2>
+            <span style="color:white">Password: </span>
+            <input type="password" id="registerPswd" class="checkRegInp" oninput="checkRegisterInp()">
+        </h2>
+    </div>
+
+    <div style="display: flex; justify-content: center;">
+        <button id="signIn" class="signInBtn" onclick="signIn()">Sign in</button>
+        <button id="register" class="registerBtn" onclick="register()">Register</button>
+    </div>
+    <p id="accErrorMsg" style="color:red"></p>
+
+    <!------- Account Screen ------->
+
+    <div id="accountCont">
+        <div class="accountBox">
+            <div class="statisticTitle">Account</div>
+            <h1>Coming Soon</h1>
+        </div>
+    </div>
+
+    <div class="backCont">
+        <a href="http://localhost:3000/"><button id="backBtn" class="backBtn" onclick="backToMenu()">Back to Menu</button></a>
+    </div>
+
+    <script src="/socket.io/socket.io.js"> </script>
+    <script src="http://localhost/BusfahrerWebMultiplayer/account.js"></script>
+</body>
+</html>

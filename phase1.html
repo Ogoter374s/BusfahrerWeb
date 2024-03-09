@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busfahrer Web</title>
+    <link rel="stylesheet" type="text/css" href="http://localhost/BusfahrerWebMultiplayer/style.css">
+</head>
+<body>
+    <!------- Starting Screen ------->
+
+    <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div id="actions">
+        <div class="actions">
+            <button id="stopGame" class="stopBtn" onclick="stopGame()">Stop Game</button>
+            <button id="startPhase2" class="phase2Btn" onclick="startPhase2()">Start Phase 2</button>
+        </div>
+    </div>
+
+    <!------- Phase 1 Screen ------->
+
+    <div id="gridPhase1">
+        <div class="grid-phase1"></div>
+    </div>
+    
+    <!------- Player Cards ------->
+
+    <p id="score" style="margin-top: -5px; margin-bottom: 15px;">
+        <span style="color:cyan" id="innerName"></span>
+        <span style="color:red" id="innerScore" class="score"></span>
+    </p>
+
+    <div id="gridCards">
+        <div class="grid-cards"></div>
+    </div>
+    <div id="actionsPhase1">
+        <div class="actions">
+            <button id="nextPlayer" class="nextBtn" onclick="nextPlayer()">Next Player</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"> </script>
+    <script src="http://localhost/BusfahrerWebMultiplayer/phase1.js"></script>
+</body>
+</html>

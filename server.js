@@ -1,477 +1,231 @@
 import express from "express";
+import path from "path";
 import {createServer} from "node:http";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { Server } from "socket.io";
+import sqlite3 from 'sqlite3';
+import {open} from 'sqlite';
 import fs from "fs/promises";
+import jwt from "jsonwebtoken";
+
+const db = await open({
+    filename: 'busfahrer.db',
+    driver: sqlite3.Database
+});
+
+db.run('PRAGMA foreign_keys = ON;', (err) => {
+    if(err) {
+        console.error('Error enabling foreign key constraints:', err.message);
+    } else {
+        console.log('Foreign key constraints enabled successfully.');
+    }
+});
+
+//Create Database Tables
+await db.exec(`
+    CREATE TABLE IF NOT EXISTS messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        client_offset TEXT UNIQUE,
+        content TEXT
+    );
+`);
+
+await db.exec(`
+    CREATE TABLE IF NOT EXISTS players (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        login TEXT UNIQUE,
+        password TEXT,
+        icon TEXT,
+        numbGames INTEGER,
+        numbBusfahrer INTERGER,
+        givenSchluck INTEGER,
+        recievedSchluck INTEGER,
+        selfSchluck INTEGER,
+        numbEx INTEGER
+    );
+`);
+
+await db.exec(`
+    CREATE TABLE IF NOT EXISTS rooms (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        roomKey TEXT UNIQUE,
+        roomName TEXT,
+        state INTEGER
+    );
+`);
+
+await db.exec(`
+    CREATE TABLE IF NOT EXISTS lobbys (
+        roomkey TEXT,
+        playerId INTEGER,
+        username TEXT,
+        gender INTEGER,
+        creator INTEGER,
+        watch INTEGER,
+        busfahrer INTEGER,
+        exen INTEGER,
+        FOREIGN KEY (roomkey) REFERENCES rooms(roomKey),
+        FOREIGN KEY (playerId) REFERENCES players(id)
+    );
+`);
+
+await db.exec(`
+    CREATE TABLE IF NOT EXISTS cards (
+        roomkey TEXT,
+        playerId INTEGER,
+        cards TEXT,
+        FOREIGN KEY (roomkey) REFERENCES rooms(roomKey),
+        FOREIGN KEY (playerId) REFERENCES players(id)
+    );
+`);
+
+await db.exec(`
+    CREATE TABLE IF NOT EXISTS phase1 (
+        roomkey TEXT,
+        rowId INTEGER,
+        rowFlipped INTEGER,
+        currPlayer INTEGER,
+        currScore INTEGER,
+        cards TEXT,
+        FOREIGN KEY (roomkey) REFERENCES rooms(roomKey)
+    );
+`);
+
+await db.exec(`
+    CREATE TABLE IF NOT EXISTS phase2 (
+        roomkey TEXT,
+        currId INTEGER,
+        currPlayer INTEGER,
+        currScore INTEGER,
+        hasCount INTEGER,
+        countMan INTEGER,
+        countWom INTEGER,
+        countAll INTEGER,
+        cards1 TEXT,
+        cards2 TEXT,
+        cards3 TEXT,
+        FOREIGN KEY (roomkey) REFERENCES rooms(roomKey)
+    );
+`);
+
+await db.exec(`
+    CREATE TABLE IF NOT EXISTS phase3 (
+        roomkey TEXT,
+        currIdx INTEGER,
+        cards TEXT,
+        cardOrder TEXT,
+        FOREIGN KEY (roomkey) REFERENCES rooms(roomKey)
+    );
+`);
 
 const app = express();
-const server = createServer(app);
-const io = new Server(server);
+
+const jwtSecretKey = "Neger";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const game = [];
+const server = createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "*"
+    },
+    connectionStateRecovery: {}
+});
 
 app.get('/', (req, res) => {
+    res.sendFile(join(__dirname, 'menu.html'));
+});
+
+const game = [];
+
+app.get('/account', (req, res) => {
+    res.sendFile(join(__dirname, 'account.html'));
+});
+
+app.get('/game', (req, res) => {
     res.sendFile(join(__dirname, 'index.html'));
 });
 
-io.on('connection', (socket) => {
-    console.log("A user connected");
-    socket.on('createRoom', (roomKey, playerName, gender) => {
-        let room = [];
-        let players = [];
-        let player = [];
-
-        socket.join(roomKey);
-        room.push(roomKey)
-        player.push(playerName);
-        player.push(gender);
-
-        socket.emit('roomCreated', roomKey, players);
-        console.log("Room " + roomKey + " created and User " + playerName + " joined");
-
-        players.push(player);
-        room.push(players);
-        game.push(room);
-    });
-
-    socket.on('joinRoom', (roomKey, playerName, gender) => {
-        let room = findRoom(roomKey);
-        let ret = [];
-
-        if(!room) {
-            ret = [-1, "Room does not exist"];
-        } 
-        else {
-            ret = checkPlayer(playerName, room[1]);
-
-            if(ret[0] < 0) {
-                socket.emit('errPlayer', ret[1]);
-            } 
-            else {
-                let players = room[1];
-                let player = [];
-
-                socket.join(roomKey);
-                player.push(playerName);
-                player.push(gender);
-                players.push(player);
-                socket.emit('roomJoined', roomKey, players);
-                
-                io.to(roomKey).emit('playerJoined', players);
-
-                console.log("Joined Room " + roomKey + " with the name " + player[0] + " with gender " + player[1]);
-            }
-        }
-    });
-
-    socket.on('startGame', async (roomKey) => {
-        let room = findRoom(roomKey);
-        
-        if(!room) {
-            console.log("Room does not exist");
-            return;
-        }
-        
-        let cards = await getCards();
-
-        //Generate Player Cards
-        let players = room[1];
-        for(let player of players) {
-            let currCards = [];
-            cards = shuffleCards(cards);
-            let tmp = 0;
-            while(tmp < 10) {
-                currCards.push(cards[tmp]);
-                tmp += 1;
-            }
-            cards.splice(1, 10);
-            player.push(currCards);
-        }
-        io.to(roomKey).emit('setCards', players);
-
-        console.log("Dealing Cards to Players");
-        
-        //Generate Phase 1 Cards
-        cards = await getCards();
-        let phase1 = [0];
-
-        let phase1Cards = generatePhase1(cards);
-
-        io.to(roomKey).emit('setPhase1', cards);
-        console.log("Deal Phase 1 Cards");
-        phase1.push(phase1Cards);
-        room.push(phase1);
-    });
-
-    socket.on('getNextPlayer', (roomkey) => {
-        let room = findRoom(roomkey);
-        let players = room[1];
-
-        let curr = room[2][0];
-        let next;
-        
-        if(curr+1 < players.length) {
-            next = players[curr+1];
-            room[2][0] = curr+1;
-        } 
-        else {
-            curr = 0;
-            next = players[curr];
-            room[2][0] = 0;
-        }
-
-        io.to(roomkey).emit('setNextPlayer', next[0]);
-    });
-
-    socket.on('nextPhase1Row', (roomKey, idx) => {
-        io.to(roomKey).emit('flipPhase1Row', idx);
-    });
-
-    socket.on('checkRow', (roomkey, rowIdx, cardName, cardId, playerName) => {
-        let room = findRoom(roomkey);
-        let players = room[1];
-        let phase1 = room[2][1];
-
-        let idxs = getPhase1Idx(rowIdx);
-        for(let idx of idxs) {
-            if(phase1[idx].name == cardName) {
-                markCard(players, phase1[idx], playerName);
-                io.to(roomkey).emit('layCard', true, cardId);
-                return;
-            }
-        }
-
-        io.to(roomkey).emit('layCard', false, cardId);
-        
-    });
-
-    socket.on('showScore', (roomkey, score) => {
-        io.to(roomkey).emit('updateScore', score);
-    });
-
-    socket.on('startPhase2', (roomKey) => {
-        console.log("Initialize Phase 2");
-        let room = findRoom(roomKey);
-        let players = room[1];
-
-        io.to(roomKey).emit('setPhase2', players);
-
-        let phase2 = [1,0,0,0];
-
-        room.push(phase2);
-    });
-
-    socket.on('getBusfahrer', (roomKey) => {
-        console.log("Calculating Busfahrer");
-        let room = findRoom(roomKey);
-        let players = room[1];
-
-        let name = "";
-        let max = 0;
-
-        for(let player of players) {
-            let cnt = 0;
-            for(let card of player[2]) {
-                if(card.type != "X") {
-                    cnt += 1;
-                }
-            }
-
-            if(cnt >= max) {
-                if(cnt == max) {
-                    name += " & ";
-                } 
-                else {
-                    name = "";
-                }
-                name += player[0];
-                max = cnt;
-            }
-        }
-
-        cleanUp(players);
-
-        io.to(roomKey).emit('setBusfahrer', name);
-    });
-
-    socket.on('countCards', (roomKey, name, type) => {
-        console.log("Count Cards");
-        let room = findRoom(roomKey);
-        let player = findPlayer(room[1], name);
-        let phase2 = room[3];
-
-        let score = 0;
-        
-        switch(type) {
-            case 0:
-                for(let card of player[2]) {
-                    let numb = parseFloat(card.name);
-                    if(numb <= 10) {
-                        io.to(roomKey).emit('giveCard', card, type);
-                        score += numb;
-                        card.imgage = "X";
-                    }
-                }
-                break;
-            case 2:
-                for(let card of player[2]) {
-                    let numb = parseFloat(card.name);
-                    if(numb == 14) {
-                        io.to(roomKey).emit('giveCard', card, type);
-                        score = -1;
-                        card.imgage = "X";
-                    }
-                }
-                break;
-        }
-
-        cleanUp(room[1]);
-
-        if(type == 2) {
-            if(score != -1) {
-                io.to(roomKey).emit('setLastCount', player[0], player[1], false);
-            } else {
-                io.to(roomKey).emit('setLastCount', player[0], player[1], true);
-            }
-        } else {
-            io.to(roomKey).emit('updateScore', score);
-        }
-
-        io.to(roomKey).emit('clearCards', player[0], type);
-    });
-
-    socket.on('getNextCount', (roomKey) => {
-        console.log("Next Player");
-        let room = findRoom(roomKey);
-        let players = room[1];
-        let idx = room[3][0];
-        let ret = "";
-        let gender = "";
-
-        if(idx+1 > players.length) {
-            idx = 0;
-            ret = players[idx][0];
-            gender = players[idx][1];
-            idx += 1;
-            room[3][0] = idx;
-        } 
-        else {
-            ret = players[idx][0];
-            gender = players[idx][1];
-            idx += 1;
-            room[3][0] = idx;
-        }
-
-        io.to(roomKey).emit('setNextCount', ret, gender);
-    });
-
-    socket.on('countCourtCard', (roomKey) => {
-        console.log("Count Court Cards");
-        let room = findRoom(roomKey);
-        let players = room[1];
-        let phase2 = room[3];
-
-        for(let player of players) {
-            let cards = player[2];
-
-            console.log(cards);
-            for(let card of cards) {
-                let found = false;
-                let numb = parseFloat(card.name);
-                console.log("Card Number: " + numb);
-                switch(numb) {
-                    case 11:
-                        phase2[1] += 1;
-                        found = true;
-                    break;
-                    case 12:
-                        phase2[2] += 1;
-                        found = true;
-                        break;
-                    case 13:
-                        phase2[3] += 1;
-                        found = true;
-                        break;
-                    case 14:
-                        break;
-                }
-
-                if(found) {
-                    io.to(roomKey).emit('giveCard', card, 1);
-                    card.imgage = "X";
-                }
-            }
-            io.to(roomKey).emit('clearCards', player[0], 1);
-        }
-
-        console.log(phase2);
-
-        let ret = calculateScore(phase2);
-        cleanUp(room[1]);
-
-        io.to(roomKey).emit('updateCourtScore', ret);
-    });
-
-    socket.on('setSelfDesc', (roomKey) => {
-        io.to(roomKey).emit('getSelfDesc', roomKey);
-    });
-
-    socket.on('clearScore', (roomKey) => {
-        io.to(roomKey).emit('setClear');
-    });
-
-    socket.on('getGender', (roomKey, name) => {
-        let room = findRoom(roomKey);
-        let players = room[1];
-
-        for(let player of players) {
-            if(player[0] == name) {
-                console.log(room[1]);
-                console.log(player);
-
-                io.to(roomKey).emit('setGender', player[1]);
-                return;
-            }
-        }
-    })
-
-    socket.on('startPhase3', async (roomKey) => {
-        console.log("Initialize Phase 3");
-        let room = findRoom(roomKey);
-
-        io.to(roomKey).emit('setPhase3');
-
-        let phase3 = [8];
-
-        //Generate Phase 3 Cards
-        let cards = await getCards();
-        let deck3 = generatePhase3Cards(cards);
-
-        io.to(roomKey).emit('setPhase3Cards', deck3);
-
-        phase3.push(deck3);
-        room.push(phase3);
-    })
-
-    socket.on('getReset', async (roomKey) => {
-        console.log("Reset Phase 3");
-        let room = findRoom(roomKey);
-
-        let phase3 = [8];
-
-        let cards = await getCards();
-        let deck3 = generatePhase1(cards);
-
-        console.log("Send Reset")
-        io.to(roomKey).emit('setReset', cards);
-        console.log("After Reset")
-
-        phase3.push(deck3);
-        room[4] = phase3;
-    });
-
-    socket.on('flipCard', (roomKey, card) => {
-        io.to(roomKey).emit('setFlipped', card);
-    });
+app.get('/create', (req, res) => {
+    res.sendFile(join(__dirname, 'createGame.html'));
 });
 
-function generatePhase3Cards(cards) {
-    let ret = [];
+app.get('/games', (req, res) => {
+    res.sendFile(join(__dirname, 'games.html'));
+});
 
-    cards = shuffleCards(cards);
-    cards = shuffleCards(cards);
+app.get('/join', (req, res) => {
+    res.sendFile(join(__dirname, 'joinGame.html'));
+});
 
-    let idx = 0;
-    while(idx < 27) {
-        ret.push(cards[idx]);
-        idx += 1;
-    }
+app.get('/lobby', (req, res) => {
+    res.sendFile(join(__dirname, 'lobby.html'));
+});
 
-    return ret;
+app.get('/phase1', (req, res) => {
+    res.sendFile(join(__dirname, 'phase1.html'));
+});
+
+app.get('/phase2', (req, res) => {
+    res.sendFile(join(__dirname, 'phase2.html'));
+});
+
+app.get('/phase3', (req, res) => {
+    res.sendFile(join(__dirname, 'phase3.html'));
+})
+
+function generateUserToken(userId) {
+    var data = {time:Date(), id:userId};
+    var token = jwt.sign(data,jwtSecretKey);
+    return token;
 }
 
-function calculateScore(phase2) {
-    let ret = [];
-
-    ret.push(phase2[1] + phase2[3]);
-    ret.push(phase2[2] + phase2[3]);
-
-    return ret
+function generateRoomToken(userId, roomkey) {
+    var data = {time:Date(), id:userId, room:roomkey};
+    var token = jwt.sign(data,jwtSecretKey);
+    return token;
 }
 
-function cleanUp(players) {
-    for(let player of players) {
-        let cards = player[2];
-        let tmp = [];
-        for(let card of cards) {
-            if(card.type != "X" && card.imgage != "X") {
-                tmp.push(card);
-            }
-        }
-        player[2] = tmp;
+function isTokenValid(token) {
+    var verify = jwt.verify(token,jwtSecretKey);
+    if(verify) {
+        return true;
     }
+    return false;
 }
 
-function findPlayer(players, name) {
-    console.log("Find player");
-    for(let player of players) {
-        console.log(player);
-        if(player[0] == name) {
-            return player;
-        }
+function getUserToken(token) {
+    var verify = jwt.verify(token,jwtSecretKey);
+    if(verify) {
+        return verify.id;
     }
-    return null;
+    return -1;
 }
 
-function markCard(players, card, name) {
-    for(let player of players) {
-        if(player[0] == name) {
-            let cards = player[2];
-            for(let tmp of cards) {
-                if(tmp.name == card.name && tmp.type != "X") {
-                    tmp.type = "X";
-                    break;
-                }
-            }
-            break;
-        }
+function getRoomToken(token) {
+    var verify = jwt.verify(token,jwtSecretKey);
+    if(verify) {
+        return verify;
     }
+    return -1;
 }
 
-function getPhase1Idx(rowIdx) {
-    let ret = [0];
-    switch(rowIdx) {
-        case 1:
-            ret = [0];
-            break;
-        case 2:
-            ret = [1, 2];
-            break;
-        case 3:
-            ret = [3,4,5];
-            break;
-        case 4:
-            ret = [6,7,8,9];
-            break;
-        case 5:
-            ret = [10, 11, 12, 13, 14];
-            break;
-    }
-    return ret;
+async function getPlayers(roomkey) {
+    let players = db.all("SELECT username, gender, creator FROM lobbys where roomkey = ?", [roomkey]);
+    return players;
 }
 
-function generatePhase1(cards) {
-    let idx = 0;
-    let phase1 = [];
-    while(idx < 15) {
-        phase1.push(cards[idx]);
-        idx += 1;
-    }
+async function getRooms() {
+    let rooms = db.all("SELECT roomKey, roomName, state FROM rooms");
+    return rooms;
+}
 
-    return phase1;
+async function updateGames() {
+    let rooms = await getRooms();
+    console.log(rooms);
+
+    io.emit('setGames', rooms);
 }
 
 export async function getCards() {
@@ -506,32 +260,1020 @@ function shuffleCards(cards) {
     return cards;
 }
 
-function findRoom(roomkey) {
-    for(let room of game) {
-        if(room[0] == roomkey) {
-            return room;
-        }
+function generatePhase1(cards) {
+    let idx = 0;
+    let phase = "";
+    while(idx < 15) {
+        phase += cards[idx].name + "_" + cards[idx].type + ";"
+        idx += 1;
     }
-    return;
+
+    return phase;
 }
 
-function checkPlayer(name, players) {
+function removeCard(token, id, sock, currRow) {
+    db.each('SELECT cards FROM cards WHERE roomkey = ? AND playerId = ?', [token.room, token.id], (err, row) => {
+        var cards = row.cards.split(';');
+        var idx = Number(id);
+        let ret = "";
+
+        cards[idx] = "";
+
+        cards.forEach(card => {
+            if(card != '') {
+                ret += card + ";";
+            }
+        });
+
+        db.run('UPDATE cards SET cards = ? WHERE roomkey = ? AND playerId = ?', [ret, token.room, token.id]);
+
+        io.to(sock).emit('layCard', currRow, id, token);
+    });
+}
+
+function getCardSum(cards, type) {
     let ret = [];
+    let nCards = "";
+    let lCard = "";
+    let idx = 0;
+    let sum = 0;
+    
+    switch(type) {
+        case 0:
+            for(let card of cards) {
+                let numb = Number(card[0]);
+                if(numb < 11) {
+                    sum += numb;
+                    lCard = "" + card[0] + card[1];
+                } else {
+                    nCards += card[0] + "_" + card[1] + ";";
+                    idx += 1;
+                }
+            }
+            break;
+        case 1:
+            
+            break;
+        case 2:
 
-    if(players.length >= 10) {
-        ret = [-1, "Too many Players in Room"];
-        return ret;
+            break;
     }
 
-    if(players.includes(name)) {
-        ret = [-1, "Name is already taken"];
-        return ret;
-    }
-
-    ret[0, "User successfully joined Room"];
+    ret[0] = sum;
+    ret[1] = nCards;
+    ret[2] = lCard;
     return ret;
 }
 
+io.on('connection', async (socket) => {
+    console.log("A user connected: " + socket.id);
+
+    //Token
+    socket.on('getToken', (token, callback) => {
+        var ret = getUserToken(token);
+
+        io.to(socket.id).emit('setToken', ret);
+        callback();
+    });
+
+    socket.on('getRoom', (token, callback) => {
+        var ret = getRoomToken(token);
+
+        io.to(socket.id).emit('setRoom', ret);
+        callback();
+    });
+
+    socket.on('connectRoom', (token, callback) => {
+        var ret = getRoomToken(token);
+
+        socket.join(ret.room);
+        callback();
+    });
+
+    //Menu Section
+    socket.on('chat message', async(msg, clientOffset, callback) => {
+        let result;
+
+        try {
+            result = await db.run('INSERT INTO messages (content, client_offset) VALUES (?, ?)', msg, clientOffset);
+        } catch(e) {
+            if(e.errno === 19) {
+                callback();
+            }
+            return;
+        }
+        io.emit('chat message', msg, result.lastID);
+        callback();
+    });
+
+    socket.on('remove message', async(callback) => {
+        let res;
+
+        try {;
+            res = await db.run('DELETE FROM messages WHERE id=(SELECT id FROM messages ORDER BY id ASC LIMIT 1)');;
+        } catch(e) {
+            if(e.errno === 19) {
+                console.log("Error");
+                callback();
+            }
+            return;
+        }
+        callback();
+    });
+
+    //Account Section
+    socket.on('checkRegister', async (name, password, id, callback) => {
+        let error = 0;
+        let result;
+        var token;
+
+        await db.each('SELECT id FROM players WHERE login = ?', [name], (err, row) => {
+            error = -1;
+        });
+
+        if(error < 0) {
+            io.to(id).emit('registerError', "Name is already taken");
+            callback();
+            return;
+        }
+
+        result = await db.run('INSERT INTO players (login, password, numbGames, numbBusfahrer, givenSchluck, recievedSchluck, selfSchluck, numbEx) VALUES (?, ?,0,0,0,0,0,0)', name, password);
+
+        token = generateUserToken(result.lastID);
+
+        io.to(id).emit('registerSuccess', token);
+
+        callback();
+    });
+
+    socket.on('checkSignIn', async (name, password, id, callback) => {
+        let error = -1;
+        let acc;
+        var token;
+
+        await db.each('SELECT id FROM players WHERE login = ? AND password = ?', [name, password],(err, row) => {
+            error = 0;
+            token = generateUserToken(row.id);
+        });
+
+        if(error < 0) {
+            io.to(id).emit('signInError', "Name or Password are incorrect");
+            callback();
+            return;
+        }
+
+        io.to(id).emit('signInSuccess', token);
+        callback();
+    });
+
+    socket.on('getAccount', async (accId, callback) => {
+        console.log("Get Statistic");
+        await db.each('SELECT login, numbGames, numbBusfahrer, givenSchluck, recievedSchluck, selfSchluck, numbEx FROM players WHERE id = ?', [accId], (err,row) => {
+            io.to(socket.id).emit('setAccount', row);
+        });
+        callback();
+        return;
+    });
+
+    //Creation Section
+    socket.on('createRoom', async (roomKey, user, state, callback) => {
+        let result;
+
+        try {
+            result = await db.run('INSERT INTO rooms (roomkey, roomName, state) VALUES (?, ?, ?)', roomKey, roomKey, state);
+        } catch(e) {
+            if(e.errno === 19) {
+                callback();
+            }
+            console.log("Error creating Room");
+            return;
+        }
+        console.log("Room created: " + roomKey);
+        
+        var token = generateRoomToken(getUserToken(user), roomKey);
+        io.to(socket.id).emit('roomCreated', token);
+        updateGames();
+        callback();
+    });
+
+    //Join Section
+    socket.on('updateGames', async (callback) => {
+        updateGames();
+        callback();
+    });
+
+    socket.on('joinGame', async (roomKey, user, watch, callback) => {
+        var token = generateRoomToken(getUserToken(user), roomKey);
+        io.to(socket.id).emit('joinedGame', token);
+        callback();
+    });
+
+    //Lobby Section
+    socket.on('joinRoom', async (token, playerName, gender, creator, watch, callback) => {
+        let error = -1;
+        let result;
+
+        await db.each('SELECT roomKey FROM rooms WHERE roomKey = ?', [token.room], (err, row) => {
+            error = 0;
+        });
+
+        if(error < 0) {
+            console.log("Room does not exist");
+            callback();
+            return;
+        }
+        
+        try {
+            result = await db.run('INSERT INTO lobbys (roomkey, playerId, username, gender, creator, watch) VALUES (?, ?, ?, ?, ?, ?)', token.room, token.id, playerName, gender, creator, watch);
+        } catch(e) {
+            if(e.errno === 19) {
+                callback();
+            }
+            console.log("Error joining Room: " + e.msg);
+            return;
+        }
+        
+        socket.join(token.room);
+
+        io.to(token.room).emit('playerJoined');
+
+        console.log("Joined Room " + token.room + " with the name " + playerName);
+        callback();
+    });
+
+    socket.on('updateLobby', async(roomKey, callback) => {
+        let players = await getPlayers(roomKey);
+        console.log(players);
+
+        io.to(roomKey).emit('changeLobby', players);
+        callback();
+    });
+
+    //General Section
+    socket.on('checkCreator', async(room, callback) => {
+        var token = getRoomToken(room);
+
+        await db.each('SELECT creator FROM lobbys WHERE playerId = ? AND roomkey = ?', [token.id, token.room], (err, row) => {
+            io.to(socket.id).emit('getCreator', row.creator);
+        });
+        callback();
+    });
+
+    socket.on('setNextPlayer', async (user, callback) => {
+        var token = getRoomToken(user);
+        var first = 0;
+        var next = false;
+
+        await db.each('SELECT COUNT(playerId) max FROM lobbys WHERE roomkey = ?', [token.room], (err, row) => {
+            var cnt = 0;
+
+            db.each('SELECT playerId FROM lobbys WHERE roomkey = ?', [token.room], (err, res) => {
+                if(next === true) {
+                    io.to(token.room).emit('getNextPlayer', res.playerId);
+                    callback();
+                    return;
+                }
+
+                if(first === 0) {
+                    first = res.playerId;
+                }
+                
+                if(res.playerId === token.id) {
+                    next = true;
+                }
+
+                cnt += 1;
+
+                if(cnt === row.max) {
+                    io.to(token.room).emit('getFirstPlayer');
+
+                    db.each('SELECT currPlayer, currScore FROM phase1 WHERE roomkey = ?', [token.room], (err, row) => {
+                        db.run('UPDATE players SET givenSchluck = givenSchluck + ? WHERE id = ?', [row.currScore, row.currPlayer]);
+                        db.run('UPDATE phase1 SET currPlayer = ?, currScore = 0 WHERE roomkey = ?', [first, token.room]);
+                    });
+
+                    callback();
+                }
+            });
+        });
+
+        callback();
+    });
+
+    socket.on('isNext', async (token, id, callback) => {
+        var ret = getRoomToken(token);
+
+        if(ret.id === id) {
+            await db.each('SELECT currPlayer, currScore FROM phase1 WHERE roomkey = ?', [ret.room], (err, row) => {
+                db.run('UPDATE players SET givenSchluck = givenSchluck + ? WHERE id = ?', [row.currScore, row.currPlayer]);
+                db.run('UPDATE phase1 SET currPlayer = ?, currScore = 0 WHERE roomkey = ?', [ret.id, ret.room]);
+            });
+
+            io.to(socket.id).emit('checkNextPlayer');
+        }
+
+        callback();
+    });
+
+    //Phase 1 Section
+
+    socket.on('createCards', async(user, callback) => {
+        var token = getRoomToken(user);
+
+        let cards = await getCards();
+        let playerC;
+
+        await db.each('SELECT playerId FROM lobbys WHERE roomkey = ?', [token.room], (err, row) => {
+            playerC = "";
+            let tmp = 0;
+
+            cards = shuffleCards(cards);
+
+            while(tmp < 10) {
+                playerC += cards[tmp].name + "_" + cards[tmp].type + ";"
+                tmp += 1;
+            }
+
+            cards.splice(1, 10);
+
+            db.run('INSERT INTO cards (roomkey, playerId, cards) VALUES (?, ?, ?)', token.room, row.playerId, playerC);
+            
+            //Player Statistics
+            db.run('UPDATE players SET numbGames = numbGames + 1 WHERE id = ?', [row.playerId]);
+        });
+
+        console.log("Created Cards for Players");
+
+        cards = await getCards();
+        let phaseC = generatePhase1(cards);
+
+        await db.run('INSERT INTO phase1 (roomkey, rowId, rowFlipped, currPlayer, currScore, cards) VALUES (?, ?, ?, ?, ?, ?)', token.room, 0, 0, token.id, 0, phaseC);
+        console.log("Deal Phase 1 Cards");
+
+        io.to(token.room).emit('generatedCards');
+
+        callback();
+    });
+
+    socket.on('updateCards', async(token, callback) => {
+        var ret = [];
+
+        await db.each('SELECT cards FROM cards WHERE roomkey = ? AND playerId = ?', [token.room, token.id], (err, row) => {
+            var playerC = row.cards.split(';');
+            var idx = 0;
+
+            playerC.forEach(card => {
+                if(card != '') {
+                    let parts = card.split('_');
+                    ret[idx] = ""+parts[0] + parts[1];
+                    idx += 1;
+                }
+            });
+
+            io.to(socket.id).emit('getCards', ret);
+            callback();
+        });
+        console.log("Give Player Cards");
+
+        ret = [];
+
+        db.each('SELECT cards, rowId, rowFlipped, currPlayer, currScore FROM phase1 WHERE roomkey = ?', [token.room], (err, row) => {
+            var phaseC = row.cards.split(';');
+            var idx = 0;
+
+            phaseC.forEach(card => {
+                if(card != '') {
+                    let parts = card.split('_');
+                    ret[idx] = "assets/" + parts[0] + parts[1] + ".png";
+                    idx += 1;
+                }
+            });
+            
+            io.to(socket.id).emit('getPhase1', ret, row.rowId, row.rowFlipped, row.currPlayer);
+
+            
+            db.each('SELECT username FROM lobbys WHERE roomkey = ? AND playerId = ?', [token.room, row.currPlayer], (err,res) => {
+                io.to(socket.id).emit('getCount', row.currScore, res.username);
+                callback();
+            });
+
+            callback();
+        });
+        console.log("Give Phase 1 Cards");
+
+        callback();
+    })
+
+    socket.on('checkCurrentPlayer', (curr, user, callback) => {
+        var ret = getUserToken(user);
+
+        io.to(socket.id).emit('getCurrentPlayer', (ret === curr));
+        callback();
+    });
+
+    socket.on('flipRow', async (token, row, callback) => {
+        var ret = getRoomToken(token);
+
+        await db.run('UPDATE phase1 SET rowFlipped = 1 WHERE roomkey = ?', [ret.room]);
+
+        io.to(ret.room).emit('flippedRow', row);
+        callback();
+    });
+
+    socket.on('checkCard', async (user, currRow, id, card, callback) => {
+        var token = getRoomToken(user);
+
+        await db.each('SELECT cards, currPlayer FROM phase1 WHERE roomkey = ? AND currPlayer = ?', [token.room, token.id], (err, row) => {
+            var phaseC = row.cards.split(';');
+            var min, max, i;
+
+            switch(currRow) {
+                case 0:
+                    min = 0;
+                    max = 1;
+                    break;
+                case 1:
+                    min = 1;
+                    max = 3;
+                    break;
+                case 2:
+                    min = 3;
+                    max = 6;
+                    break;
+                case 3:
+                    min = 6;
+                    max = 10;
+                    break;
+                case 4:
+                    min = 10;
+                    max = 15;
+                    break;
+            }
+
+            for(i=min;i<max;i++) {
+                let cardC = phaseC[i];
+                if(cardC != '') {
+                    let parts = cardC.split('_');
+                    if(parts[0] === card) {
+                        removeCard(token, id, socket.id, currRow);
+                        callback();
+                        break;
+                    }
+                }
+            }
+
+            callback();
+        });
+
+        callback();
+    });
+
+    socket.on('updateScore', async (user, row, callback) => {
+        var token = getRoomToken(user);
+
+        db.run('UPDATE phase1 SET currScore = currScore + ? WHERE roomkey = ?', [row + 1, token.room]);
+
+        db.each('SELECT cards, rowId, rowFlipped, currPlayer, currScore FROM phase1 WHERE roomkey = ?', [token.room], (err, row) => {
+            db.each('SELECT username FROM lobbys WHERE roomkey = ? AND playerId = ?', [token.room, row.currPlayer], (err,res) => {
+                io.to(token.room).emit('getCount', row.currScore, res.username);
+                callback();
+            });
+        });
+
+        callback();
+    })
+
+    socket.on('setCurrentRow', async (user, callback) => {
+        var token = getRoomToken(user);
+
+        db.run('UPDATE phase1 SET rowId = rowId + 1 WHERE roomkey = ?', [token.room]);
+
+        await db.each('SELECT rowId FROM phase1 WHERE roomkey = ?', [token.room], (err, row) => {
+            io.to(token.room).emit('getCurrentRow', row.rowId);
+            callback();
+        });
+
+        callback();
+    })
+
+    socket.on('calculateBusfahrer', async(user, callback) => {
+        console.log("Calculate Busfahrer");
+        var token = getRoomToken(user);
+
+        let busfahrer = "";
+        let curr = 0;
+
+        await db.each('SELECT cards, playerId FROM cards WHERE roomkey = ?', [token.room], (err, row) => {
+            let playerC = row.cards.split(';');
+            let sum = playerC.length - 1;
+            if(sum === curr) {
+                busfahrer += ";" + row.playerId;
+            }
+            
+            if(sum > curr) {
+                busfahrer = row.playerId + "";
+
+                curr = sum;
+            }
+        });
+
+        let players = busfahrer.split(";");
+        for(let player of players) { 
+            if(player != '') {
+                db.run('UPDATE lobbys SET busfahrer = 1 WHERE roomkey = ? AND playerId = ?', [token.room, player]);
+                db.run('UPDATE players SET numbBusfahrer = numbBusfahrer + 1 WHERE id = ?', [player]);
+            }
+        }
+
+        callback();
+    });
+
+    //Phase 2 Section
+
+    socket.on('createCardsPhase2', async(user, callback) => {
+        var token = getRoomToken(user);
+
+        await db.run('INSERT INTO phase2 (roomkey, currId, currPlayer, currScore, hasCount, countMan, countWom, countAll, cards1, cards2, cards3) VALUES (?, 0, ?, 0, 0, 0, 0, 0, "", "", "")', [token.room, token.id]);
+        
+        io.to(token.room).emit('getBusfahrer');
+        
+        callback();
+    });
+
+    socket.on('updateCardsPhase2', async(token, callback) => {
+        var ret = [];
+        var bus = "";
+        
+        await db.each('SELECT username FROM lobbys WHERE roomkey = ? AND busfahrer = 1', [token.room], (err, row) => {
+            if(bus === "") {
+                bus = row.username;
+            } else {
+                bus += " & " + row.username;
+            }
+        })
+        io.to(socket.id).emit('setBusfahrer', bus);
+
+        await db.each('SELECT cards FROM cards WHERE roomkey = ? AND playerId = ?', [token.room, token.id], (err, row) => {
+            var playerC = row.cards.split(';');
+            var idx = 0;
+
+            playerC.forEach(card => {
+                if(card != '') {
+                    let parts = card.split('_');
+                    ret[idx] = ""+parts[0] + parts[1];
+                    idx += 1;
+                }
+            });
+
+            io.to(socket.id).emit('getCards', ret);
+            callback();
+        });
+
+        await db.each('SELECT currScore, currPlayer, currId, hasCount, countMan, countWom, countAll FROM phase2 WHERE roomkey = ?', [token.room], (err, row) => {
+            if(row.currId === 0) {
+                db.each('SELECT username FROM lobbys WHERE roomkey = ? AND playerId = ?', [token.room, row.currPlayer], (err, res) => {
+                    io.to(socket.id).emit('updatedScore', res.username, row.currScore);
+                    callback();
+                });
+            } else if(row.currId < 3) {
+                db.each('SELECT username, gender FROM lobbys WHERE roomkey = ? AND playerId = ?', [token.room, token.id], (err, res) => {
+                    io.to(socket.id).emit('setCourt', res.username, res.gender, row.countMan, row.countWom, row.countAll);
+                    callback();
+                });
+            } else {
+                db.each('SELECT username, gender, exen FROM lobbys WHERE roomkey = ? AND playerId = ?', [token.room, token.id], (err, res) => {
+                    io.to(socket.id).emit('setEx', res.username, res.exen);
+                    callback();
+                });
+            }
+
+            if(token.id === row.currPlayer && row.hasCount === 1) {
+                io.to(socket.id).emit('counted');
+            }
+
+            if(token.id != row.currPlayer) {
+                io.to(socket.id)
+            }
+
+            io.to(socket.id).emit('updateType', row.currId);
+        });
+
+        await db.each('SELECT cards1, cards2, cards3, currPlayer FROM phase2 WHERE roomkey = ?', [token.room], (err, row) => {
+            let cards = [row.cards1, row.cards2, row.cards3];
+            io.to(socket.id).emit('updateTypes', cards, row.currPlayer);
+            callback();
+        });
+
+        callback();
+    });
+
+    socket.on('countCards', async(user, type, callback) => {
+        var token = getRoomToken(user);
+
+        await db.each('SELECT cards FROM cards WHERE roomkey = ? AND playerId = ?', [token.room, token.id], (err, row) => {
+            let playerC = row.cards.split(';');
+            let ret = [];
+            let idx = 0;
+
+            playerC.forEach(card => {
+                if(card != '') {
+                    let parts = card.split('_');
+                    ret[idx] = parts;
+                    idx += 1;
+                }
+            });
+
+            let nRet = getCardSum(ret, type);
+
+            db.run('UPDATE players SET selfSchluck = selfSchluck + ? WHERE id = ?', [nRet[0], token.id]);
+            db.run('UPDATE cards SET cards = ? WHERE roomkey = ? AND playerId = ?', [nRet[1], token.room, token.id]);
+
+            if(nRet[2] != "") {
+                db.run('UPDATE phase2 SET currScore = ?, cards1 = ?, hasCount = 1 WHERE roomkey = ?', [nRet[0], nRet[2], token.room]);
+            }
+
+            io.to(token.room).emit('cardsChanged', token);
+            callback();
+        });
+        callback();
+    });
+
+    socket.on('setNextCount', async(user, callback) => {
+        var token = getRoomToken(user);
+        var next = false;
+        var first = 0;
+
+        await db.each('SELECT COUNT(playerId) max FROM lobbys WHERE roomkey = ?', [token.room], (err, row) => {
+            var cnt = 0;
+
+            db.each('SELECT playerId FROM lobbys WHERE roomkey = ?', [token.room], (err, res) => {
+                if(next === true) {
+                    io.to(token.room).emit('getNextCount', res.playerId);
+                    callback();
+                    return;
+                }
+
+                if(first === 0) {
+                    first = res.playerId;
+                }
+                
+                if(res.playerId === token.id) {
+                    next = true;
+                }
+
+                cnt += 1;
+
+                if(cnt === row.max) {
+                    io.to(token.room).emit('getFirstPlayer');
+
+                    db.run('UPDATE phase2 SET currPlayer = ?, currScore = 0, hasCount = 0, currId = currId + 1 WHERE roomkey = ?', [first, token.room]);
+
+                    io.to(token.room).emit('setAllScore');
+
+                    callback();
+                }
+            });
+        });
+
+        callback();
+    });
+
+    socket.on('getAllScore', async (user, callback) => {
+        var token = getRoomToken(user);
+
+        db.each('SELECT username, gender FROM lobbys WHERE roomkey = ? AND playerId = ?', [token.room, token.id], (err, res) => {
+            io.to(socket.id).emit('setCourt', res.username, res.gender, 0, 0, 0);
+            callback();
+        });
+
+        callback();
+    });
+
+    socket.on('updateCountScore', async (user, callback) => {
+        var token = getRoomToken(user);
+
+        db.each('SELECT currPlayer, currScore FROM phase2 WHERE roomkey = ?', [token.room], (err, row) => {
+            db.each('SELECT username FROM lobbys WHERE roomkey = ? AND playerId = ?', [token.room, row.currPlayer], (err,res) => {
+                io.to(token.room).emit('updatedScore', res.username, row.currScore);
+                callback();
+            });
+        });
+
+        callback();
+    });
+
+    socket.on('isNextCount', async (token, id, callback) => {
+        var ret = getRoomToken(token);
+
+        if(ret.id === id) {
+            db.run('UPDATE phase2 SET currPlayer = ?, currScore = 0, hasCount = 0 WHERE roomkey = ?', [ret.id, ret.room]);
+
+            io.to(socket.id).emit('checkNextCount');
+        }
+
+        callback();
+    });
+
+    socket.on('countCourtCards', async (user, callback) => {
+        var token = getRoomToken(user);
+        var all = 0;
+        var wom = 0;
+        var man = 0;
+        let players = [];
+        let idx = 0;
+        let lCard = "";
+
+        try {
+            let rows = await db.all('SELECT cards, playerId FROM cards WHERE roomkey = ?', [token.room]);
+
+            for(let row of rows) {
+                let playerC = row.cards.split(';');
+                let ret = "";
+
+                playerC.forEach(card => {
+                    if(card != '') {
+                        let parts = card.split('_');
+
+                        var numb = Number(parts[0]);
+
+                        switch(numb) {
+                            case 11:
+                                man += 1;
+                                lCard = parts[0] + parts[1] + ""; 
+                                break;
+                            case 12:
+                                wom += 1;
+                                lCard = parts[0] + parts[1] + "";
+                                break;
+                            case 13:
+                                all += 1;
+                                lCard = parts[0] + parts[1] + "";
+                                break;
+                            case 14:
+                                ret += card + ";";
+                                break;
+                        }
+                    }
+                });
+
+                db.run('UPDATE cards SET cards = ? WHERE roomkey = ? AND playerId = ?', [ret, token.room, row.playerId]);
+                if(lCard != "") {
+                    db.run('UPDATE phase2 SET cards2 = ? WHERE roomkey = ?', [lCard, token.room]);
+                }
+                players[idx] = row.playerId;
+                idx += 1;
+            }
+
+            for(let player of players) {
+                io.to(token.room).emit('updateCourtScore', player, man, wom, all)
+            }
+
+            await db.run('UPDATE phase2 SET countMan = ?, countWom = ?, countAll = ? WHERE roomkey = ?', [man, wom, all, token.room]);
+
+        } catch(e) {
+            console.log(e);
+        }
+
+        callback();
+    });
+
+    socket.on('checkCourt', async (user, player, man, wom, all, callback) => {
+        var token = getRoomToken(user);
+
+        if(token.id === player) {
+            await db.each('SELECT gender, username FROM lobbys WHERE roomkey = ? AND playerId = ?', [token.room, token.id], (err, row) => {
+                io.to(socket.id).emit('setCourt', row.username, row.gender, man, wom, all);
+            });
+            callback();
+        }
+
+        callback();
+    });
+
+    socket.on('getCurrType', async (user, callback) => {
+        var token = getRoomToken(user);
+
+        await db.each('SELECT currId FROM phase2 WHERE roomkey = ?', [token.room], (err, row) => {
+            io.to(socket.id).emit('setCurrType', row.currId);
+            callback();
+        });
+
+        callback();
+    });
+
+    socket.on('updatePhaseCards', async(user, callback) => {
+        var token = getRoomToken(user);
+        var ret = [];
+
+        await db.each('SELECT cards FROM cards WHERE roomkey = ? AND playerId = ?', [token.room, token.id], (err, row) => {
+            var playerC = row.cards.split(';');
+            var idx = 0;
+
+            playerC.forEach(card => {
+                if(card != '') {
+                    let parts = card.split('_');
+                    ret[idx] = ""+parts[0] + parts[1];
+                    idx += 1;
+                }
+            });
+
+            io.to(socket.id).emit('getCards', ret);
+            callback();
+        });
+
+        await db.each('SELECT cards1, cards2, cards3, currPlayer FROM phase2 WHERE roomkey = ?', [token.room], (err, row) => {
+            let cards = [row.cards1, row.cards2, row.cards3];
+            io.to(socket.id).emit('updateTypes', cards, row.currPlayer);
+            callback();
+        });
+
+        callback();
+    });
+
+    socket.on('nextType', async (user, callback) => {
+        var token = getRoomToken(user);
+
+        await db.run('UPDATE phase2 SET currId = currId + 1 WHERE roomkey = ?', [token.room]);
+
+        await db.each('SELECT currId FROM phase2 WHERE roomkey = ?', [token.room], (err, row) => {
+            io.to(socket.id).emit('setCurrType', row.currId);
+        });
+
+        callback();
+    });
+
+    socket.on('countEx', async (user, callback) => {
+        var token = getRoomToken(user);
+
+        let players = [];
+        let idx = 0;
+        let lCard = "";
+
+        try {
+            let rows = await db.all('SELECT cards, playerId FROM cards WHERE roomkey = ?', [token.room]);
+
+            for(let row of rows) {
+                let playerC = row.cards.split(';');
+                let ex = false;
+
+                playerC.forEach(card => {
+                    if(card != '') {
+                        let parts = card.split('_');
+                        ex = true;
+                        lCard = parts[0] + parts[1] + "";
+                    }
+                });
+
+                db.run('UPDATE cards SET cards = "" WHERE roomkey = ? AND playerId = ?', [token.room, row.playerId]);
+                if(lCard != "") {
+                    db.run('UPDATE phase2 SET cards3 = ? WHERE roomkey = ?', [lCard, token.room]);
+                }
+
+                if(ex) {
+                    db.run('UPDATE players SET numbEx = numbEx + 1 WHERE id = ?', [row.playerId]);
+                }
+
+                players[idx] = [];
+                players[idx][0] = row.playerId;
+                players[idx][1] = ex;
+                idx += 1;
+            }
+
+            for(let player of players) {
+                io.to(token.room).emit('updateEx', player[0], player[1]);
+            }
+        } catch(e) {
+            console.log(e);
+        }
+
+        callback();
+    });
+
+    socket.on('checkEx', async(user, player, ex, callback) => {
+        var token = getRoomToken(user);
+
+        if(token.id === player) {
+            await db.each('SELECT username FROM lobbys WHERE roomkey = ? AND playerId = ?', [token.room, token.id], (err, row) => {
+                io.to(socket.id).emit('setEx', row.username, ex);
+            });
+
+            await db.run('UPDATE lobbys SET exen = ? WHERE roomkey = ? AND playerId = ?', [ex, token.room, token.id]);
+
+            callback();
+        }
+
+        callback();
+    });
+
+    //Phase 3 Section
+
+    socket.on('createCardsPhase3', async (user, callback) => {
+        var token = getRoomToken(user);
+
+        let cards = await getCards();
+        cards = shuffleCards(cards);
+        cards = shuffleCards(cards);
+
+        let phase = "";
+        let idx = 0;
+
+        while(idx < 27) {
+            phase += cards[idx].name + "_" + cards[idx].type + ";"
+            idx += 1;
+        }
+
+        await db.run('INSERT INTO phase3 (roomkey, currIdx, cards, cardOrder) VALUES (?, 0, ?, "")', [token.room, phase]);
+
+        io.to(token.room).emit('generatedPhase3');
+
+        callback();
+    });
+
+    socket.on('updatePhase3', async (token, callback) => {
+        var bus = "";
+        
+        await db.each('SELECT username FROM lobbys WHERE roomkey = ? AND busfahrer = 1', [token.room], (err, row) => {
+            if(bus === "") {
+                bus = row.username;
+            } else {
+                bus += " & " + row.username;
+            }
+        })
+        io.to(socket.id).emit('setBusfahrer', bus);
+
+        let ret = [];
+
+        db.each('SELECT cards, cardOrder, currIdx FROM phase3 WHERE roomkey = ?', [token.room], (err, row) => {
+            var phaseC = row.cards.split(';');
+            var order = row.cardOrder.split(';');
+            var idx = 0;
+
+            phaseC.forEach(card => {
+                if(card != '') {
+                    let parts = card.split('_');
+                    ret[idx] = "assets/" + parts[0] + parts[1] + ".png";
+                    idx += 1;
+                }
+            });
+            
+            io.to(socket.id).emit('getPhase3', ret, order, row.currIdx);
+            callback();
+        });
+
+        callback();
+    });
+
+    socket.on('resetCardsPhase3', async (user, callback) => {
+        var token = getRoomToken(user);
+
+        let cards = await getCards();
+        cards = shuffleCards(cards);
+        cards = shuffleCards(cards);
+
+        let phase = "";
+        let idx = 0;
+
+        while(idx < 27) {
+            phase += cards[idx].name + "_" + cards[idx].type + ";"
+            idx += 1;
+        }
+
+        await db.run('UPDATE phase3 SET cards = ?, cardOrder = "", currIdx = 8 WHERE roomkey = ?', [phase, token.room]);
+
+        io.to(token.room).emit('resetedPhase', token);
+
+        callback();
+    });
+
+    socket.on('flipCard', async (user, idx, callback) => {
+        var token = getRoomToken(user);
+
+        await db.each('SELECT cardOrder FROM phase3 WHERE roomkey = ?', [token.room], (err, row) => {
+            var card = row.cardOrder + "" + idx + ";";
+
+            db.run('UPDATE phase3 SET cardOrder = ?, currIdx = currIdx - 1 WHERE roomkey = ?', [card, token.room]);
+        });
+
+        io.to(token.room).emit('setFlipped', idx);
+        callback();
+    })
+
+    //Recover Session
+    if(!socket.recovered) {
+        try {
+            await db.each('SELECT id, content FROM messages WHERE id > ?',
+            [socket.handshake.auth.serverOffset || 0],
+            (_err, row) => {
+              socket.emit('chat message', row.content, row.id);
+            }
+          )
+        } catch(e) {
+
+        }
+    }
+
+});
+
 server.listen(3000, () => {
-    console.log('Server is running at http://167.86.102.204:3000');
+    console.log('Server is running at http://localhost:3000');
 });
