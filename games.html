@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busfahrer Web</title>
+    <link rel="stylesheet" type="text/css" href="http://localhost/BusfahrerWebMultiplayer/style.css">
+</head>
+<body>
+    <!------- Starting Screen ------->
+
+    <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="gameBox">
+        <h2 class="statisticTitle" style="margin-top: 0%;">
+            <span style="color:white">Join Game</span>
+        </h2>
+        
+        <div class="gameCont">
+            <ul id="games" style="margin-top: 4%;">
+                <li class="game-item">
+                </li>
+            </ul>
+          </div>
+    </div>
+
+    <h2 style="margin-top: -1%;" class="privateJoin">
+        <span style="color:white">Game Code: </span>
+        <input type="text" id="roomKeyInp" oninput="updateJoinBtn()">
+        <button style="margin-left: .5%;" class="joinBtn" id="privJoin" onclick="joinPrivateGame()"></button>
+    </h2>
+    
+    <div class="backCont">
+        <a href="http://localhost:3000/"><button id="backBtn" class="backBtn" onclick="backToMenu()">Back to Menu</button></a>
+    </div>
+
+    <script src="/socket.io/socket.io.js"> </script>
+    <script src="http://localhost/BusfahrerWebMultiplayer/games.js"></script>
+</body>
+</html>

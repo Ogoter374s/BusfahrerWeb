@@ -1,0 +1,9 @@
+# Files #
+*.db
+*.sql
+
+# Folders #
+node_modules/
+images/
+assets/
+.vscode/

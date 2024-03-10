@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busfahrer Web</title>
+    <link rel="stylesheet" type="text/css" href="http://localhost/BusfahrerWebMultiplayer/style.css">
+</head>
+<body>
+    <!------- Starting Screen ------->
+
+    <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div id="actions">
+        <div class="actions">
+            <button id="stopGame" class="stopBtn" onclick="stopGame()">Stop Game</button>
+        </div>
+    </div>
+
+    <!------- Phase 2 Screen ------->
+
+    <div id="titlePhase2" class="titlePhases">
+        <h2>
+            <span style="color:white">Busfahrer: </span>
+            <span id="busfahrer" style="color: aqua" class="busfahrer"></span>
+        </h2>
+    </div>
+    <div id="phase2Cont" class="phase2">
+        <div class="phase2Rules">
+            <span>Trinke für deine Übrigen Karten</span>
+            <span>Pro 2-10: Trinke 2-10 Schluck</span>
+            <span>Pro J: Alle Burschen trinken einen Schluck</span>
+            <span>Pro D: Alle Damen trinken einen Schluck</span>
+            <span>Pro K: Alle trinken einen Schluck</span>
+            <span>Pro A: Ex dein Glas</span>
+        </div>
+        <div id="actionsPhase2" class="phase3">
+            <button id="count" class="countBtn" onclick="countCards()">Count Cards</button>
+            <button id="nextCount" class="nextCountBtn" onclick="nextCount()">Next Player</button>
+            <button id="phase3" class="phase3Btn" onclick="startPhase3()">Next Phase</button>
+        </div>
+        <div id="gridPhase2" style="margin-bottom: 5px;">
+            <div class="grid-phase2"></div>
+        </div>
+    </div>
+    
+    <!------- Player Cards ------->
+
+    <p id="score" style="margin-top: -5px; margin-bottom: 15px;">
+        <span style="color:cyan" id="innerName"></span>
+        <span style="color:red" id="innerScore" class="score"></span>
+    </p>
+    
+    <div id="gridCards">
+        <div class="grid-cards"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"> </script>
+    <script src="http://localhost/BusfahrerWebMultiplayer/phase2.js"></script>
+</body>
+</html>

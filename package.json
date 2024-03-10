@@ -1,0 +1,13 @@
+{
+    "name": "BusfahrerWeb",
+    "version": "0.0.1",
+    "description": "Busfahrer Mutliplayer",
+    "type": "module",
+    "dependencies": {
+        "express": "^4.18.2",
+        "jsonwebtoken": "^9.0.2",
+        "socket.io": "^4.7.3",
+        "sqlite": "^5.1.1",
+        "sqlite3": "^5.1.7"
+    }
+}

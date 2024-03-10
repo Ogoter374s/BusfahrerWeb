@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busfahrer Web</title>
+    <link rel="stylesheet" type="text/css" href="http://localhost/BusfahrerWebMultiplayer/style.css">
+</head>
+<body>
+    <!------- Starting Screen ------->
+
+    <h1 id="heading">
+        <span style="color:white">Busfahrer</span>
+        <span style="color: red;">Extreme</span>
+    </h1>
+
+    <div class="container">
+        <!------- Chat Section ------->
+
+        <div class="box">
+            <ul class="msgs" id="messages"></ul>
+            <form id="form" action="">
+                <input class="chatInp" id="input" autocomplete="off" />
+            </form>
+        </div>
+
+        <!------- Menu Section ------->
+        
+        <div class="box">
+            <div style="display: flex; justify-content: center; padding-top: 20%;">
+                <a href="http://localhost:3000/create">
+                    <button id="playGame" class="gameBtn" onclick="">Play Game</button>
+                </a>
+            </div>
+            <div style="display: flex; justify-content: center; padding-top: 1%;">
+                <a href="http://localhost:3000/games">
+                    <button id="joinGame" class="watchBtn" onclick="">Join Game</button>
+                </a>
+            </div>
+        </div>
+
+        <!------- Character Section ------->
+        
+        <div class="box">
+            <div class="statisticBox">
+                <div class="statisticTitle" onclick="accountMenu()">Statistics</div>
+                <div id="statList" class="statisticList">
+                </div>
+            </div>
+
+            <input type="text" id="loginN" class="playerN" oninput="updateRoomBtn()" disabled>
+            <div class="settingCont">
+                <a href="http://localhost:3000/account"><button class="settingBtn" onclick="settingMenu()"></button></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="/socket.io/socket.io.js"> </script>
+    <script src="http://localhost/BusfahrerWebMultiplayer/menu.js"></script>
+</body>
+</html>

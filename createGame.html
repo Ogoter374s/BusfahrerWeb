@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busfahrer Web</title>
+    <link rel="stylesheet" type="text/css" href="http://localhost/BusfahrerWebMultiplayer/style.css">
+</head>
+<body>
+    <!------- Starting Screen ------->
+
+    <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <h1 id="heading">
+        <span style="color:white">Busfahrer</span>
+        <span style="color: red;">Extreme</span>
+    </h1>
+
+    <!------- Creation Screen ------->  
+    
+    <div id="createScreen">
+        <div class="settingsBox">
+            <h2 class="statisticTitle" style="margin-top: 0%;">
+                <span style="color:white">Create Game</span>
+            </h2>
+
+            <h3 style="margin-top: 6%;">Player Name:</h3>
+            <div style="display: relative; margin-top: -2.5%;">
+                <input style="margin-left: 14%;" type="text" id="playerName" oninput="checkInput()">
+            </div>
+
+            <h3 style="margin-top: 3%;">Player Gender:</h3>
+            <div style="display: relative; margin-top: -3%;">
+                <div class="radio-container">
+                    <input type="radio" id="male" name="gender" value="0" onchange="checkInput()">
+                    <label for="male">Male</label>
+                    <input style="margin-left: 25px;" type="radio" id="female" name="gender" value="1" onchange="checkInput()">
+                    <label for="female">Female</label>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 3%;">Lobby Visibility:</h3>
+            <div style="display: relative; margin-top: -3%;">
+                <div class="radio-container">
+                    <input type="radio" id="public" name="visibility" value="0" onchange="checkInput()">
+                    <label for="public">Public</label>
+                    <input style="margin-left: 25px;" type="radio" id="private" name="visibility" value="1" onchange="checkInput()">
+                    <label for="privat">Private</label>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 3%;">Game Options:</h3>
+            <div style="display: relative; margin-top: -3%;">
+                <span style="font-size: 40px; color: red; margin-left: 13%;" >Comming Soon</span>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: center; margin-top: -1%;">
+            <button id="createRoom" class="roomBtn" onclick="createRoom()">Create Room</button>
+        </div>
+        <p id="errorMsg" style="color:red"></p>
+    </div>
+
+    <div class="backCont">
+        <a href="http://localhost:3000/"><button id="backBtn" class="backBtn" onclick="backToMenu()">Back to Menu</button></a>
+    </div>
+
+    <script src="/socket.io/socket.io.js"> </script>
+    <script src="http://localhost/BusfahrerWebMultiplayer/createGame.js"></script>
+</body>
+</html>

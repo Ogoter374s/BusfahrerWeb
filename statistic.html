@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busfahrer Web</title>
+    <link rel="stylesheet" type="text/css" href="http://localhost/BusfahrerWebMultiplayer/style.css">
+</head>
+<body>
+    <div class="container">
+        <!------- Statistic Screen ------->
+        <div class="box">
+            <div class="globalStatBox">
+                <div class="statisticTitle">Global Statistics</div>
+                <div id="statGlobalList" class="statisticList">
+                </div>
+            </div>
+        </div>
+        <!------- Statistic Screen ------->
+        <div class="box">
+            <div class="globalStatBox">
+                <div class="statisticTitle">Statistics</div>
+                <div id="statSelfList" class="statisticList">
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="backCont">
+        <a href="http://localhost:3000/"><button id="backBtn" class="backBtn" onclick="backToMenu()">Back to Menu</button></a>
+    </div>
+
+    <script src="/socket.io/socket.io.js"> </script>
+    <script src="http://localhost/BusfahrerWebMultiplayer/statistic.js"></script>
+</body>
+</html>
